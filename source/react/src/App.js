@@ -8,40 +8,18 @@ class App extends React.Component {
 		super(props);
 
 		this.state = {
-			username: localStorage.getItem('username') ?? null,
+			username: null,
 			inputUsername: '',
 			messages: [],
 			inputMess: ''
 		}
 
-		this.getMess = this.getMess.bind(this)
 		this.onMess = this.onMess.bind(this)
 		this.renderMess = this.renderMess.bind(this)
 		this.renderInputUsername = this.renderInputUsername.bind(this)
 		this.submit = this.submit.bind(this)
 		this.sendMess = this.sendMess.bind(this)
 
-		this.getMess()
-		this.onMess()
-	}
-
-	async getMess(){
-		await firebase.database().ref('messages').get().then(items => {
-				let result = []
-				items.forEach(item => {
-					result.push({
-						key: item.key,
-						username: item.val().username,
-						content: item.val().content,
-					})
-				})
-				this.setState({
-					messages: result
-				})
-			})
-			.catch(() => {
-				
-			})
 	}
 
 	onMess(){
@@ -138,6 +116,26 @@ class App extends React.Component {
 		</div>
 	}
 
+	componentDidMount(){
+		var user = window.localStorage.getItem('usernane') ?? null
+		this.setState({
+			...this.state,
+			username: user,
+		})
+
+		firebase.database().ref('messages').on("child_added", (snapshot) => {
+			this.setState({
+				messages: [
+					...this.state.messages,
+					{
+						key: snapshot.key,
+						username: snapshot.val().username,
+						content: snapshot.val().content,
+					}
+				]
+			})
+	 	})
+	}
 
 }
 
